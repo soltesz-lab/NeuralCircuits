@@ -3,7 +3,9 @@ import importlib
 from collections import defaultdict
 import yaml
 from yaml.representer import Representer
+
 yaml.add_representer(defaultdict, Representer.represent_dict)
+
 
 class IncludeLoader(yaml.Loader):
     """
@@ -21,7 +23,7 @@ class IncludeLoader(yaml.Loader):
         :return:
         """
         filename = os.path.join(self._root, self.construct_scalar(node))
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             return yaml.load(f, IncludeLoader)
 
     def envsubst(self, node):
@@ -36,8 +38,9 @@ class IncludeLoader(yaml.Loader):
         return s
 
 
-IncludeLoader.add_constructor('!include', IncludeLoader.include)
-IncludeLoader.add_constructor('!envsubst', IncludeLoader.envsubst)
+IncludeLoader.add_constructor("!include", IncludeLoader.include)
+IncludeLoader.add_constructor("!envsubst", IncludeLoader.envsubst)
+
 
 class ExplicitDumper(yaml.SafeDumper):
     """
@@ -47,6 +50,7 @@ class ExplicitDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
+
 def write_to_yaml(file_path, data, default_flow_style=False):
     """
 
@@ -55,8 +59,10 @@ def write_to_yaml(file_path, data, default_flow_style=False):
     :param convert_scalars: bool
     :return:
     """
-    with open(file_path, 'w') as outfile:
-        yaml.dump(data, outfile, default_flow_style=default_flow_style, Dumper=ExplicitDumper)
+    with open(file_path, "w") as outfile:
+        yaml.dump(
+            data, outfile, default_flow_style=default_flow_style, Dumper=ExplicitDumper
+        )
 
 
 def read_from_yaml(file_path, include_loader=None):
@@ -66,7 +72,7 @@ def read_from_yaml(file_path, include_loader=None):
     :return:
     """
     if os.path.isfile(file_path):
-        with open(file_path, 'r') as stream:
+        with open(file_path, "r") as stream:
             if include_loader is None:
                 Loader = yaml.FullLoader
             else:
@@ -74,7 +80,7 @@ def read_from_yaml(file_path, include_loader=None):
             data = yaml.load(stream, Loader=Loader)
         return data
     else:
-        raise IOError(f'read_from_yaml: invalid file_path: {file_path}')
+        raise IOError(f"read_from_yaml: invalid file_path: {file_path}")
 
 
 def yaml_envsubst(full, val=None, initial=True):
@@ -88,7 +94,7 @@ def yaml_envsubst(full, val=None, initial=True):
     elif isinstance(val, str):
         val = envsubst(val.format(**full))
 
-    return val    
+    return val
 
 
 def import_object_by_path(path):
@@ -96,7 +102,7 @@ def import_object_by_path(path):
     print(path)
     print(module_path)
     print(obj_name)
-    
+
     if module_path == "__main__" or module_path == "":
         module = sys.modules["__main__"]
     else:

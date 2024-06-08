@@ -1,6 +1,7 @@
 import numpy as np
 from neuron import h
 
+
 def taper_diam(sec, zero_bound, one_bound):
     dx = 1.0 / sec.nseg
     for seg, x in zip(sec, np.arange(dx / 2, 1, dx)):
@@ -8,7 +9,6 @@ def taper_diam(sec, zero_bound, one_bound):
 
 
 class ExcMorrisLecar(object):
-    
     def __init__(self, i, synapse_mechanisms={}):
         super().__init__()
         self.synapse_mechanisms = synapse_mechanisms
@@ -21,7 +21,7 @@ class ExcMorrisLecar(object):
         self.define_biophysics()
         self.create_synapses()
         self.position = 0
-        
+
     def create_sections(self):
         """create a soma"""
         self.soma = h.Section(name="soma", cell=self)
@@ -91,16 +91,14 @@ class ExcMorrisLecar(object):
         for sec in self.dends:
             syn_AMPA = getattr(h, AMPA_syn_mech_name)(sec(0.5))
             syn_NMDA = getattr(h, NMDA_syn_mech_name)(sec(0.5))
-            input_synlist.append({ "AMPA": syn_AMPA,
-                                   "NMDA": syn_NMDA })
+            input_synlist.append({"AMPA": syn_AMPA, "NMDA": syn_NMDA})
         self.syndict["input excitatory"] = input_synlist
 
         excitatory_synlist = []
         for sec in self.dends:
             syn_AMPA = getattr(h, AMPA_syn_mech_name)(sec(0.5))
             syn_NMDA = getattr(h, NMDA_syn_mech_name)(sec(0.5))
-            excitatory_synlist.append({"AMPA": syn_AMPA,
-                                       "NMDA": syn_NMDA })
+            excitatory_synlist.append({"AMPA": syn_AMPA, "NMDA": syn_NMDA})
         self.syndict["recurrent excitatory"] = excitatory_synlist
 
         inhibitory_synlist = []
@@ -120,7 +118,6 @@ class ExcMorrisLecar(object):
         nc = h.NetCon(self.soma(1)._ref_v, target, sec=self.soma)
         nc.threshold = thresh
         return nc
-
 
 
 class InhMorrisLecar(object):
@@ -224,4 +221,3 @@ class InhMorrisLecar(object):
         nc = h.NetCon(self.soma(1)._ref_v, target, sec=self.soma)
         nc.threshold = thresh
         return nc
-

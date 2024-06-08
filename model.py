@@ -9,9 +9,10 @@ from collections import defaultdict
 from encoding import poisson_rate_generator, transfer_gaussian_rf, transfer_linear_rf
 from NeuralCircuits import config
 
+
 def get_param_val_from_distribution(config_dict, rng):
-    distribution = config_dict['distribution']
-    distribution_params = config_dict['distribution params']
+    distribution = config_dict["distribution"]
+    distribution_params = config_dict["distribution params"]
     rsamp = getattr(rng, distribution)
     val = np.clip(rsamp(**distribution_params), 1.0e-6, None)
     return val
@@ -103,49 +104,57 @@ def divergent_topo_transform(
 
 
 class NetworkModel:
-
     def __init__(self, toplevel_config):
         self.toplevel_config = toplevel_config
-        self.circuit_config = toplevel_config['Circuit']
-        self.runtime_config = toplevel_config['Runtime']
+        self.circuit_config = toplevel_config["Circuit"]
+        self.runtime_config = toplevel_config["Runtime"]
         self.celltypes = {}
         self.populations = {}
         self.Ncells = 0
         self.Ninputs = 0
-        self.synapse_parameter_rules = toplevel_config['Synapse Parameter Rules']
-        self.synapse_mechanisms = toplevel_config['Synapse Mechanisms']
+        self.synapse_parameter_rules = toplevel_config["Synapse Parameter Rules"]
+        self.synapse_mechanisms = toplevel_config["Synapse Mechanisms"]
         self.random_seeds = toplevel_config.get("Random seeds", {})
-        self.rng_coordinates = np.random.RandomState(int(self.random_seeds.get("Coordinates", 0)))
-        self.rng_connections = np.random.RandomState(int(self.random_seeds.get("Distance-Dependent Connectivity", 0)))
-        self.rng_weights = np.random.RandomState(int(self.random_seeds.get("Synaptic Weights", 0)))
+        self.rng_coordinates = np.random.RandomState(
+            int(self.random_seeds.get("Coordinates", 0))
+        )
+        self.rng_connections = np.random.RandomState(
+            int(self.random_seeds.get("Distance-Dependent Connectivity", 0))
+        )
+        self.rng_weights = np.random.RandomState(
+            int(self.random_seeds.get("Synaptic Weights", 0))
+        )
         self.use_coreneuron = self.runtime_config.get("use coreneuron", False)
         self.use_cvode = self.runtime_config.get("cvode", False)
         self.dt = self.runtime_config.get("dt", 0.025)
         h.dt = self.dt
-        self.pnm = ParallelNetwork(int(self.random_seeds.get("Network instantiation", 0)),
-                                   use_cvode=self.use_cvode,
-                                   use_coreneuron=self.use_coreneuron)
+        self.pnm = ParallelNetwork(
+            int(self.random_seeds.get("Network instantiation", 0)),
+            use_cvode=self.use_cvode,
+            use_coreneuron=self.use_coreneuron,
+        )
         self._init_celltypes()
         self._init_populations()
         self._make_cells()
-        
+
     def _init_celltypes(self):
-        for k, cell_config in self.circuit_config['cell types'].items():
-            template_class = cell_config['template class']
+        for k, cell_config in self.circuit_config["cell types"].items():
+            template_class = cell_config["template class"]
             template_obj = config.import_object_by_path(template_class)
-            self.celltypes[k] = { 'template': template_obj }
+            self.celltypes[k] = {"template": template_obj}
 
     def _init_populations(self):
         offset = 0
-        for k, population_config in self.circuit_config['populations'].items():
-            number = population_config['number']
-            cell_type_name = population_config['cell type']
+        for k, population_config in self.circuit_config["populations"].items():
+            number = population_config["number"]
+            cell_type_name = population_config["cell type"]
             coordinates = self.rng_coordinates.random(size=(number, 2))
-            self.populations[k] = { 'offset': offset,
-                                    'number': number,
-                                    'cell class': self.celltypes[cell_type_name],
-                                    'coordinates': coordinates,
-                                   }
+            self.populations[k] = {
+                "offset": offset,
+                "number": number,
+                "cell class": self.celltypes[cell_type_name],
+                "coordinates": coordinates,
+            }
             self.pnm.add_population(k, number=number, offset=offset)
             offset = offset + number
             self.Ncells = self.Ncells + number
@@ -153,10 +162,10 @@ class NetworkModel:
     def _make_cells(self):
         for population in sorted(self.populations):
             config = self.populations[population]
-            N = config['number']
-            offset = config['offset']
-            coordinates = config['coordinates']
-            cell_class = config['cell class']['template']
+            N = config["number"]
+            offset = config["offset"]
+            coordinates = config["coordinates"]
+            cell_class = config["cell class"]["template"]
             for i in range(N):
                 gid = i + offset
                 if self.pnm.gid_exists(gid):
@@ -165,9 +174,8 @@ class NetworkModel:
                     cell.set_position(coordinates[i])
 
     def make_inputs(self, Ninputs):
-
         self.Ninputs = Ninputs
-        
+
         stim_coordinates = self.rng_coordinates.uniform(size=((Ninputs, 2)))
 
         self.coordinates["input"] = stim_coordinates
@@ -181,14 +189,13 @@ class NetworkModel:
                 cell = h.VecStim(gid)
                 pnm.register_cell(gid, cell)
 
-
     def init_inputs(
-            self,
-            input_array,
-            presentation_time=0.01,
-            dt=0.001,
-            input_encoder=poisson_rate_generator,
-            encoder_rf="linear",
+        self,
+        input_array,
+        presentation_time=0.01,
+        dt=0.001,
+        input_encoder=poisson_rate_generator,
+        encoder_rf="linear",
     ):
         pnm = self.pnm
         encoding_dim = self.Ninputs
@@ -233,10 +240,13 @@ class NetworkModel:
                 input_cell = pnm.gid2cell[gid]
                 input_cell.play(h.Vector().from_python(spike_array))
 
-                
-    def set_plasticity(self, populations, enable,
-                       syn_types=["input excitatory", "recurrent excitatory"],
-                       syn_mechs =["AMPA"]):
+    def set_plasticity(
+        self,
+        populations,
+        enable,
+        syn_types=["input excitatory", "recurrent excitatory"],
+        syn_mechs=["AMPA"],
+    ):
         pnm = self.pnm
         for p in populations:
             n = pnm.cellnums[p]
@@ -250,7 +260,6 @@ class NetworkModel:
                         for syn_mech in syn_mechs:
                             synobjs[syn_mech].on = 1 if enable else 0
 
-
     def transfer_trained_weights(self, populations, syn_mech_name="AMPA"):
         pnm = self.pnm
         for p in populations:
@@ -258,29 +267,29 @@ class NetworkModel:
             offset = pnm.offsets[p]
             for gid in range(offset, offset + n):
                 if pnm.gid_exists(gid):
-                    for (src_gid, target_gid, synapse_id, mech_name), nc in pnm.netcons.items():
+                    for (
+                        src_gid,
+                        target_gid,
+                        synapse_id,
+                        mech_name,
+                    ), nc in pnm.netcons.items():
                         if (target_gid == gid) and (mech_name == syn_mech_name):
                             nc.weight[0] = nc.weight[1]
 
-
-
-
     def generate_connections(self):
-
         pnm = self.pnm
-        connectivity_params = self.circuit_config['connectivity']
+        connectivity_params = self.circuit_config["connectivity"]
 
         for postsyn_pop in sorted(connectivity_params):
-            Npost = self.populations[postsyn_pop]['number']
+            Npost = self.populations[postsyn_pop]["number"]
             offset_post = self.pnm.offsets[postsyn_pop]
             coords_post = self.populations[postsyn_pop]["coordinates"]
-            
-            for presyn_pop in sorted(connectivity_params[postsyn_pop]):
 
-                Npre = self.populations[presyn_pop]['number']
+            for presyn_pop in sorted(connectivity_params[postsyn_pop]):
+                Npre = self.populations[presyn_pop]["number"]
                 offset_pre = self.pnm.offsets[presyn_pop]
                 coords_pre = self.populations[presyn_pop]["coordinates"]
-                
+
                 projection_params = connectivity_params[postsyn_pop][presyn_pop]
                 projection_pattern = projection_params["pattern"]
                 prob = projection_params["probability"]
@@ -289,13 +298,15 @@ class NetworkModel:
                 synapse_sections = synapse_params["sections"]
                 synapse_mechs = synapse_params["mechanism"]
                 projection_operator = convergent_topo_transform
-                if projection_pattern == 'convergent topographic':
+                if projection_pattern == "convergent topographic":
                     projection_operator = convergent_topo_transform
-                elif projection_pattern == 'divergent topographic':
+                elif projection_pattern == "divergent topographic":
                     projection_operator = divergent_topo_transform
                 else:
-                    raise RuntimeError(f"Unknown projection pattern {projection_pattern}")
-                
+                    raise RuntimeError(
+                        f"Unknown projection pattern {projection_pattern}"
+                    )
+
                 connections = projection_operator(
                     self.rng_connections,
                     Npre,
@@ -306,7 +317,7 @@ class NetworkModel:
                     sigma_scale,
                     exclude_self=True,
                 )
-                
+
                 for post_id, (pre_ids, dists) in connections.items():
                     post_gid = post_id + offset_post
                     for dist, pre_id in zip(dists, pre_ids):
@@ -318,14 +329,34 @@ class NetworkModel:
                             syn_mech_name = self.synapse_mechanisms[syn_mech_type]
                             for syn_param_name, syn_param_value in syn_params.items():
                                 if isinstance(syn_param_value, dict):
-                                    syn_param_value = get_param_val_from_distribution(syn_param_value, self.rng_connections)
-                                if syn_param_name in self.synapse_parameter_rules[syn_mech_name]['netcon']:
-                                    netcon_param_index = self.synapse_parameter_rules[syn_mech_name]['netcon'][syn_param_name]
-                                    netcon_params_dict[syn_mech_name][netcon_param_index] = syn_param_value
-                                elif syn_param_name in self.synapse_parameter_rules[syn_mech_name]['mechanism']:
-                                    mech_params_dict[syn_mech_name][syn_param_name] = syn_param_value
+                                    syn_param_value = get_param_val_from_distribution(
+                                        syn_param_value, self.rng_connections
+                                    )
+                                if (
+                                    syn_param_name
+                                    in self.synapse_parameter_rules[syn_mech_name][
+                                        "netcon"
+                                    ]
+                                ):
+                                    netcon_param_index = self.synapse_parameter_rules[
+                                        syn_mech_name
+                                    ]["netcon"][syn_param_name]
+                                    netcon_params_dict[syn_mech_name][
+                                        netcon_param_index
+                                    ] = syn_param_value
+                                elif (
+                                    syn_param_name
+                                    in self.synapse_parameter_rules[syn_mech_name][
+                                        "mechanism"
+                                    ]
+                                ):
+                                    mech_params_dict[syn_mech_name][
+                                        syn_param_name
+                                    ] = syn_param_value
                                 else:
-                                    raise RuntimeError(f"Unknown parameter {syn_param_name} in synapse mechanism {syn_mech_name}")
+                                    raise RuntimeError(
+                                        f"Unknown parameter {syn_param_name} in synapse mechanism {syn_mech_name}"
+                                    )
                         syn_id = pnm.make_connection(
                             pre_gid,
                             post_gid,
@@ -349,36 +380,26 @@ class NetworkModel:
         self.pnm.done()
 
     def gather_spikes(self, populations=None):
-        
         cell_spikes = []
         if populations is None:
             populations = self.populations
         for population in populations:
             cell_spikes.append(self.pnm.get_cell_spikes(population))
-                
+
         all_spikes = gather_spikes(self.pnm.pc, *cell_spikes)
         return all_spikes
 
-            
     def save_spikes(self, output_name, populations=None):
-
         cell_spikes = []
         if populations is None:
             populations = self.populations
         for population in populations:
             cell_spikes.append(self.pnm.get_cell_spikes(p))
-            
-        save_spikes(
-            self.pnm.pc,
-            output_name,
-            *cell_spikes)
 
-        
+        save_spikes(self.pnm.pc, output_name, *cell_spikes)
+
     def gid2cell(self, gid):
         return self.pnm.pc.gid2cell(gid)
-        
+
     def gid_exists(self, gid):
         return self.pnm.gid_exists(gid)
-        
-
-

@@ -219,7 +219,7 @@ if pnm.pc.id() == 0:
         unit_offset=offset_input,
         label_dur=presentation_time * 1000.0,
         labels=train_labels,
-        spike_transform=spike_transform
+        spike_transform=spike_transform,
     )
     input_predictions_train = predict_logistic(
         cell_spikes_input_train,
@@ -228,7 +228,7 @@ if pnm.pc.id() == 0:
         label_dur=presentation_time * 1000.0,
         n_units=n_input,
         unit_offset=offset_input,
-        spike_transform=spike_transform
+        spike_transform=spike_transform,
     )
     input_train_score = accuracy_score(train_labels, input_predictions_train)
 
@@ -239,7 +239,7 @@ if pnm.pc.id() == 0:
         label_dur=presentation_time * 1000.0,
         n_units=n_input,
         unit_offset=offset_input,
-        spike_transform=spike_transform
+        spike_transform=spike_transform,
     )
     input_test_score = accuracy_score(test_labels, input_predictions_test)
 
@@ -249,7 +249,7 @@ if pnm.pc.id() == 0:
         unit_offset=offset_out,
         label_dur=presentation_time * 1000.0,
         labels=train_labels,
-        spike_transform=spike_transform
+        spike_transform=spike_transform,
     )
     output_predictions_train = predict_logistic(
         cell_spikes_out_train,
@@ -258,7 +258,7 @@ if pnm.pc.id() == 0:
         label_dur=presentation_time * 1000.0,
         n_units=n_out,
         unit_offset=offset_out,
-        spike_transform=spike_transform
+        spike_transform=spike_transform,
     )
     output_train_score = accuracy_score(train_labels, output_predictions_train)
 
@@ -269,7 +269,7 @@ if pnm.pc.id() == 0:
         label_dur=presentation_time * 1000.0,
         n_units=n_out,
         unit_offset=offset_out,
-        spike_transform=spike_transform
+        spike_transform=spike_transform,
     )
     output_test_score = accuracy_score(test_labels, output_predictions_test)
 

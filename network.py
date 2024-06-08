@@ -2,6 +2,7 @@ from neuron import h
 import numpy as np
 from itertools import chain
 
+
 def save_spikes(pc, save_filepath, *spike_time_dicts):
     all_spike_dicts = pc.py_gather(spike_time_dicts, 0)
 
@@ -42,7 +43,7 @@ class Network:
     def add_population(self, name, number, offset):
         self.cellnums[name] = number
         self.offsets[name] = offset
-        
+
     def register_cell(self, gid, cellobject):
         self.gid2cell[gid] = cellobject
 
@@ -114,7 +115,7 @@ class SerialNetwork(Network):
 class ParallelNetwork(Network):
     def __init__(self, seed=None, use_coreneuron=False, use_cvode=False):
         super().__init__()
-        
+
         self.rng = np.random.RandomState(seed)
 
         self.pc = h.ParallelContext()
@@ -165,8 +166,7 @@ class ParallelNetwork(Network):
 
     def set_maxstep(self, n):
         self.pc.set_maxstep(n)
-        
-        
+
     def make_connection(
         self,
         src_gid,
@@ -181,18 +181,26 @@ class ParallelNetwork(Network):
     ):
         if self.pc.gid_exists(target_gid):
             target = self.pc.gid2cell(target_gid)
-            synlist = list(chain.from_iterable([target.syndict[synapse_section]
-                                                for synapse_section in synapse_sections]))
+            synlist = list(
+                chain.from_iterable(
+                    [
+                        target.syndict[synapse_section]
+                        for synapse_section in synapse_sections
+                    ]
+                )
+            )
             if synapse_id is None:
                 synapse_id = self.rng.randint(0, len(synlist), 1)[0]
-            synloc = None # TODO
+            synloc = None  # TODO
             synobjects = synlist[synapse_id]
             for mech_type, syn in synobjects.items():
                 nc = self.pc.gid_connect(src_gid, syn)
                 mech_name = synapse_mechanisms[mech_type]
                 for mech_param_name, mech_param_value in mech_params[mech_name].items():
                     setattr(syn, mech_param_name, mech_param_value)
-                for netcon_param_index, netcon_param_value in netcon_params[mech_name].items():
+                for netcon_param_index, netcon_param_value in netcon_params[
+                    mech_name
+                ].items():
                     nc.weight[netcon_param_index] = netcon_param_value
                 nc.delay = delay
                 nc.threshold = thresh

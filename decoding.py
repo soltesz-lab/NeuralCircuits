@@ -118,12 +118,21 @@ def fit_logistic_decoder(
 
 
 def predict_logistic(
-        spike_times_dict, decoder, label_count, label_dur, n_units, unit_offset=0,
-        spike_transform=FirstLastSpikeTransform(),
+    spike_times_dict,
+    decoder,
+    label_count,
+    label_dur,
+    n_units,
+    unit_offset=0,
+    spike_transform=FirstLastSpikeTransform(),
 ):
     X = make_activity_matrix(
-        spike_times_dict, label_count, label_dur, n_units, unit_offset,
-        spike_transform=spike_transform
+        spike_times_dict,
+        label_count,
+        label_dur,
+        n_units,
+        unit_offset,
+        spike_transform=spike_transform,
     )
 
     return decoder.predict(X)
