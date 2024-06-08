@@ -1,0 +1,127 @@
+Random seeds:
+  Coordinates:                         0 ## Distributing cell coordinates
+  Distance-Dependent Connectivity:     2.0e+6 ## Generating distance-dependent connectivity
+  Synaptic Weights:                    3.0e+6 ## Generating synaptic weights
+  Network instantiation:               4.0e+6 ## Generating synaptic locations for connectivity
+
+Synapse Mechanisms:
+  AMPA_STDP: CCSTDPSyn
+  AMPA: LinExp2Syn
+  NMDA: NMDA
+  GABA: LinExp2Syn
+
+Synapse Parameter Rules: !include synapse_parameter_rules.yaml
+  
+Runtime:
+  use coreneuron: False
+  
+Circuit:
+  cell types:
+    Exc:
+      template class: NeuralCircuits.neurons.ExcMorrisLecar
+    Inh:
+      template class: NeuralCircuits.neurons.InhMorrisLecar
+      
+  populations:
+    Exc:
+      number: 320
+      cell type: Exc
+    FB_Inh:
+      number: 80
+      cell type: Inh
+      
+    
+  connectivity:
+    # postsynaptic population
+    Exc: 
+      input: # presynaptic population
+        probability: 0.1
+        scale: 0.5
+        pattern: "convergent topographic"
+        synapse:
+          sections: ["input excitatory"]
+          mechanism:
+            AMPA_STDP:
+              g_unit: 1.1e-6
+              weight:
+                distribution: normal
+                distribution params:
+                  loc: 1.0
+                  scale: 0.01
+              tau1: 0.1
+              tau2: 5.0
+              e: 0.0
+              spikewidth: 3.0
+              theta2: -40
+              A2: 2.0e-8
+            NMDA:
+              g_unit: 6.0e-4
+              weight: 1.0
+              e: 0.0
+      Exc: # presynaptic population
+        probability: 0.05
+        scale: 0.01
+        pattern: "divergent topographic"
+        synapse:
+          sections: ["recurrent excitatory"]
+          mechanism:
+            AMPA_STDP:
+              g_unit: 4.0e-5
+              weight:
+                distribution: normal
+                distribution params:
+                  loc: 1.0
+                  scale: 0.01
+              tau1: 0.1
+              tau2: 5.0
+              e: 0.0
+              spikewidth: 3.0
+              theta2: -40
+              A2: 2.0e-8
+            NMDA:
+              g_unit: 2.0e-6
+              weight: 1.0
+              e: 0.0
+      FB_Inh: # presynaptic population
+        probability: 0.4
+        scale: 0.01
+        pattern: "divergent topographic"
+        synapse:
+          sections: ["inhibitory"]
+          mechanism:
+            GABA:
+              g_unit: 9.0e-3
+              weight: 1.0
+              e: -70
+              tau1: 1.0
+              tau2: 15.0
+    # postsynaptic population
+    FB_Inh: 
+      Exc: # presynaptic population
+        probability: 0.15
+        scale: 0.05
+        pattern: "convergent topographic"
+        synapse:
+          sections: ["excitatory"]
+          mechanism:
+            AMPA:
+              g_unit: 1.0e-5
+              weight: 1.0
+              tau1: 0.1
+              tau2: 5.0
+              e: 0.0
+      FB_Inh: # presynaptic population
+        probability: 0.05
+        scale: 0.05
+        pattern: "divergent topographic"
+        synapse:
+          sections: ["inhibitory"]
+          mechanism:
+            GABA:
+              g_unit: 5.0e-5
+              weight: 1.0
+              e: -70
+              tau1: 1.0
+              tau2: 10.0
+
+              

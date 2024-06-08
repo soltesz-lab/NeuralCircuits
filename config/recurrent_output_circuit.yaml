@@ -1,0 +1,87 @@
+
+Circuit:
+  cell types:
+    Exc:
+      template class: NeuralCircuits.neurons.ExcMorrisLecar
+    Inh:
+      template class: NeuralCircuits.neurons.InhMorrisLecar
+      
+  synapses:
+    AMPA:
+      
+    GABA:
+      
+    NMDA:
+      wmax_scaler: 20.0
+      potentiation: 4.0e-4 
+      depression: 6.0e-4
+      thresh: -10.0
+      dtau: 34.0
+      ptau: 17.0
+      
+  populations:
+    Exc:
+      number: 320
+      cell type: Exc
+    InhFB:
+      number: 80
+      cell type: Inh
+    InhBP:
+      number: 40
+      cell type: Inh
+    Output:
+      number: 100
+      cell type: Inh
+    
+  connectivity:
+    # postsynaptic population
+        Exc: 
+            input:
+                probability: 10 #6
+                synapse: 
+                    type: ['STDPE2', 'NMDA']
+                    weight1: 3.6e-3 #3.6e-3 for E>E  #3.5e-3 for E>E + I>E
+                    potentiation: 5.5e-5   #5.5e-5 for E>E and E>E + E>E  #1.0e-4 for E->E + I->E
+                    depression: 6.0e-4 
+                    wmax_scaler: 3.0
+                    compartments: ['oriensDistal', 'radiatum']
+                gradient:
+                  cue:
+                    mean: 0.6
+                    scale: 0.025
+                  place:
+                    mean: 
+
+network_params = {
+    "p_E": 0.1,
+    "p_IE": 0.4,
+    "p_EE": 0.05,
+    "p_EI": 0.15,
+    "p_EO": 0.1,
+    "p_OO": 0.01,
+    "p_IffE": 0.1,
+    "p_IbpO": 0.2,
+    "p_IbpE": 0.4,
+    "p_OIbp": 0.3,
+    "p_II": 0.05,
+    "sigma_scale_E": 0.05,
+    "sigma_scale_IE": 0.01,
+    "sigma_scale_EE": 0.01,
+    "sigma_scale_OO": 0.05,
+    "sigma_scale_EI": 0.05,
+    "sigma_scale_EO": 0.05,
+    "sigma_scale_IffE": 0.01,
+    "sigma_scale_IbpO": 0.01,
+    "sigma_scale_IbpE": 0.01,
+    "sigma_scale_OIbp": 0.05,
+    "sigma_scale_II": 0.05,
+    "g_EI": 1.0e-5,
+    "g_EO": 2.0e-5,
+    "g_E": 2.0e-6,
+    "g_EE": 4.0e-5,
+    "g_IE": 9.0e-3,
+    "g_II": 5.0e-5,
+    "g_IbpO": 7.0e-3,
+    "g_input_I": 1.1e-6,
+    "g_NMDA": 2.0e-6,
+}

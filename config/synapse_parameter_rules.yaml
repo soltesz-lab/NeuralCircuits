@@ -1,0 +1,58 @@
+Exp2Syn:
+    mechanism file: exp2syn.mod
+    mechanism:
+      - tau1
+      - tau2
+      - e
+    netcon:
+      weight: 0
+    netcon state: {}
+LinExp2Syn:
+    mechanism file: lin_exp2syn.mod
+    mechanism:
+      - tau_rise
+      - tau_decay
+      - e
+    netcon:
+      weight: 0
+      g_unit: 1
+CCSTDPSyn:
+    mechanism file: ccstdpsyn.mod
+    mechanism:
+      - tau_open0
+      - tau_close0
+      - spikewidth
+      - tau1
+      - tau2
+      - taux
+      - theta1
+      - theta2
+      - A1
+      - A2
+      - wEmin
+      - wEmax
+      - e
+    netcon:
+      weight: 0
+      g_unit: 1
+      wE: 2
+      x: 3
+      tpre: 4
+NMDA:
+    mechanism file: nmda.mod
+    mechanism:
+      - tcon
+      - tcoff
+      - e
+      - tauD
+      - tauF
+      - util
+    netcon:
+      weight: 0
+      g_unit: 1
+      R: 2
+      u: 3
+      tlast: 4
+      nspike: 5
+
+
